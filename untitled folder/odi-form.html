@@ -1,0 +1,914 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>ODI - Oswestry Disability Index</title>
+<style>
+  :root {
+    --primary: #0066cc;
+    --primary-light: #e8f2ff;
+    --primary-dark: #004999;
+    --success: #28a745;
+    --warning: #ffc107;
+    --danger: #dc3545;
+    --orange: #fd7e14;
+    --gray-50: #f8f9fa;
+    --gray-100: #f1f3f5;
+    --gray-200: #e9ecef;
+    --gray-300: #dee2e6;
+    --gray-500: #adb5bd;
+    --gray-700: #495057;
+    --gray-800: #343a40;
+    --gray-900: #212529;
+    --radius: 12px;
+    --shadow: 0 2px 8px rgba(0,0,0,0.08);
+    --shadow-lg: 0 4px 20px rgba(0,0,0,0.12);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans Arabic', sans-serif;
+    background: var(--gray-100);
+    color: var(--gray-900);
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+
+  [dir="rtl"] body { font-family: 'Noto Sans Arabic', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif; }
+
+  .container {
+    max-width: 680px;
+    margin: 0 auto;
+    padding: 16px;
+  }
+
+  /* Header */
+  .header {
+    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+    color: white;
+    padding: 24px 20px;
+    border-radius: var(--radius);
+    margin-bottom: 16px;
+    text-align: center;
+    box-shadow: var(--shadow-lg);
+    position: relative;
+  }
+  .header h1 { font-size: 1.4rem; margin-bottom: 4px; font-weight: 700; }
+  .header p { font-size: 0.85rem; opacity: 0.9; }
+
+  .lang-toggle {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    background: rgba(255,255,255,0.2);
+    border: 1px solid rgba(255,255,255,0.4);
+    color: white;
+    padding: 6px 14px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 0.8rem;
+    font-weight: 600;
+    transition: all 0.2s;
+    backdrop-filter: blur(4px);
+  }
+  [dir="rtl"] .lang-toggle { right: auto; left: 12px; }
+  .lang-toggle:hover { background: rgba(255,255,255,0.35); }
+
+  /* Progress */
+  .progress-bar-container {
+    background: white;
+    border-radius: var(--radius);
+    padding: 14px 20px;
+    margin-bottom: 16px;
+    box-shadow: var(--shadow);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .progress-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.8rem;
+    color: var(--gray-700);
+    margin-bottom: 6px;
+    font-weight: 500;
+  }
+  .progress-track {
+    background: var(--gray-200);
+    border-radius: 10px;
+    height: 8px;
+    overflow: hidden;
+  }
+  .progress-fill {
+    background: linear-gradient(90deg, var(--primary), var(--success));
+    height: 100%;
+    border-radius: 10px;
+    transition: width 0.4s ease;
+    width: 0%;
+  }
+
+  /* Patient Info */
+  .patient-info {
+    background: white;
+    border-radius: var(--radius);
+    padding: 20px;
+    margin-bottom: 16px;
+    box-shadow: var(--shadow);
+  }
+  .patient-info h2 {
+    font-size: 1rem;
+    color: var(--primary);
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 0;
+  }
+  @media (max-width: 500px) { .form-row { grid-template-columns: 1fr; } }
+  .form-group { margin-bottom: 12px; }
+  .form-group label {
+    display: block;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--gray-700);
+    margin-bottom: 4px;
+  }
+  .form-group input, .form-group select {
+    width: 100%;
+    padding: 10px 14px;
+    border: 1.5px solid var(--gray-300);
+    border-radius: 8px;
+    font-size: 0.9rem;
+    transition: border-color 0.2s;
+    background: white;
+    font-family: inherit;
+  }
+  .form-group input:focus, .form-group select:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px var(--primary-light);
+  }
+
+  /* Sections */
+  .section {
+    background: white;
+    border-radius: var(--radius);
+    padding: 20px;
+    margin-bottom: 12px;
+    box-shadow: var(--shadow);
+    border-left: 4px solid var(--primary);
+    transition: border-color 0.3s;
+  }
+  [dir="rtl"] .section { border-left: none; border-right: 4px solid var(--primary); }
+  .section.answered { border-left-color: var(--success); }
+  [dir="rtl"] .section.answered { border-right-color: var(--success); }
+
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+  .section-number {
+    background: var(--primary);
+    color: white;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8rem;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+  .section.answered .section-number { background: var(--success); }
+  .section-title { font-size: 1rem; font-weight: 700; color: var(--gray-800); }
+
+  .option {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 10px 14px;
+    border: 1.5px solid var(--gray-200);
+    border-radius: 8px;
+    margin-bottom: 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .option:hover { border-color: var(--primary); background: var(--primary-light); }
+  .option.selected {
+    border-color: var(--primary);
+    background: var(--primary-light);
+    box-shadow: 0 0 0 2px var(--primary-light);
+  }
+  .option input[type="radio"] {
+    margin-top: 3px;
+    accent-color: var(--primary);
+    flex-shrink: 0;
+    width: 16px;
+    height: 16px;
+  }
+  .option label {
+    font-size: 0.88rem;
+    cursor: pointer;
+    color: var(--gray-800);
+    line-height: 1.4;
+  }
+
+  /* Submit */
+  .submit-section { text-align: center; margin: 24px 0; }
+  .btn-submit {
+    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+    color: white;
+    border: none;
+    padding: 14px 48px;
+    font-size: 1rem;
+    font-weight: 700;
+    border-radius: 30px;
+    cursor: pointer;
+    box-shadow: var(--shadow-lg);
+    transition: all 0.3s;
+    font-family: inherit;
+  }
+  .btn-submit:hover { transform: translateY(-1px); box-shadow: 0 6px 24px rgba(0,102,204,0.35); }
+  .btn-submit:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+  /* Results */
+  .results {
+    display: none;
+    background: white;
+    border-radius: var(--radius);
+    padding: 24px;
+    margin-bottom: 20px;
+    box-shadow: var(--shadow-lg);
+    text-align: center;
+    animation: slideUp 0.5s ease;
+  }
+  @keyframes slideUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .results.show { display: block; }
+  .score-circle {
+    width: 140px;
+    height: 140px;
+    border-radius: 50%;
+    margin: 16px auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    border: 6px solid;
+    position: relative;
+  }
+  .score-value { font-size: 2.4rem; font-weight: 800; line-height: 1; }
+  .score-percent { font-size: 0.9rem; font-weight: 600; opacity: 0.8; }
+  .score-label {
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin: 12px 0 6px;
+  }
+  .score-desc { font-size: 0.85rem; color: var(--gray-700); max-width: 400px; margin: 0 auto 20px; }
+
+  .result-details {
+    background: var(--gray-50);
+    border-radius: 8px;
+    padding: 16px;
+    margin: 16px 0;
+    text-align: left;
+  }
+  [dir="rtl"] .result-details { text-align: right; }
+  .result-details h3 { font-size: 0.9rem; margin-bottom: 10px; color: var(--gray-800); }
+  .result-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 6px 0;
+    font-size: 0.82rem;
+    border-bottom: 1px solid var(--gray-200);
+  }
+  .result-item:last-child { border-bottom: none; }
+  .result-item span:first-child { color: var(--gray-700); }
+  .result-item span:last-child { font-weight: 600; }
+
+  /* Share */
+  .share-section {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: center;
+    margin-top: 20px;
+  }
+  .btn-share {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 20px;
+    border-radius: 25px;
+    border: none;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: inherit;
+  }
+  .btn-share:hover { transform: translateY(-1px); }
+  .btn-whatsapp { background: #25d366; color: white; }
+  .btn-email { background: var(--primary); color: white; }
+  .btn-copy { background: var(--gray-700); color: white; }
+  .btn-print { background: var(--orange); color: white; }
+  .btn-reset { background: var(--gray-200); color: var(--gray-800); margin-top: 10px; }
+
+  .footer {
+    text-align: center;
+    padding: 16px;
+    font-size: 0.75rem;
+    color: var(--gray-500);
+  }
+
+  /* Print */
+  @media print {
+    .lang-toggle, .progress-bar-container, .share-section, .submit-section, .btn-reset, .footer { display: none !important; }
+    .section { break-inside: avoid; }
+    body { background: white; }
+    .container { max-width: 100%; }
+    .header { background: var(--primary) !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  }
+
+  /* Minimal disability */
+  .severity-minimal .score-circle { border-color: var(--success); color: var(--success); }
+  .severity-moderate .score-circle { border-color: var(--warning); color: #e6a800; }
+  .severity-severe .score-circle { border-color: var(--orange); color: var(--orange); }
+  .severity-crippled .score-circle { border-color: var(--danger); color: var(--danger); }
+  .severity-bedridden .score-circle { border-color: #8b0000; color: #8b0000; }
+</style>
+</head>
+<body>
+<div class="container" id="app">
+
+  <!-- Header -->
+  <div class="header">
+    <button class="lang-toggle" onclick="toggleLanguage()" id="langBtn">عربي</button>
+    <h1 id="title">Oswestry Disability Index (ODI)</h1>
+    <p id="subtitle">Please answer each section by selecting the ONE statement that best describes your condition today</p>
+  </div>
+
+  <!-- Progress -->
+  <div class="progress-bar-container">
+    <div class="progress-label">
+      <span id="progressText">Progress</span>
+      <span id="progressCount">0 / 10</span>
+    </div>
+    <div class="progress-track">
+      <div class="progress-fill" id="progressFill"></div>
+    </div>
+  </div>
+
+  <!-- Patient Info -->
+  <div class="patient-info">
+    <h2 id="patientTitle">&#128100; Patient Information</h2>
+    <div class="form-row">
+      <div class="form-group">
+        <label id="lblName" for="patientName">Full Name</label>
+        <input type="text" id="patientName" autocomplete="name">
+      </div>
+      <div class="form-group">
+        <label id="lblMRN" for="patientMRN">MRN / File No.</label>
+        <input type="text" id="patientMRN">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label id="lblDOB" for="patientDOB">Date of Birth</label>
+        <input type="date" id="patientDOB">
+      </div>
+      <div class="form-group">
+        <label id="lblDate" for="assessDate">Assessment Date</label>
+        <input type="date" id="assessDate">
+      </div>
+    </div>
+  </div>
+
+  <!-- Questionnaire Sections -->
+  <div id="questionnaire"></div>
+
+  <!-- Submit -->
+  <div class="submit-section">
+    <button class="btn-submit" id="btnSubmit" onclick="calculateScore()">
+      <span id="submitText">Calculate Score</span>
+    </button>
+  </div>
+
+  <!-- Results -->
+  <div class="results" id="results">
+    <h2 id="resultTitle" style="font-size:1.2rem;margin-bottom:4px;">Assessment Results</h2>
+    <div class="score-circle" id="scoreCircle">
+      <span class="score-value" id="scoreValue">0</span>
+      <span class="score-percent">%</span>
+    </div>
+    <div class="score-label" id="scoreLabel"></div>
+    <div class="score-desc" id="scoreDesc"></div>
+
+    <div class="result-details" id="resultDetails"></div>
+
+    <div class="share-section" id="shareSection">
+      <button class="btn-share btn-whatsapp" onclick="shareWhatsApp()">&#128172; WhatsApp</button>
+      <button class="btn-share btn-email" onclick="shareEmail()">&#9993; Email</button>
+      <button class="btn-share btn-copy" onclick="copyResult()">&#128203; Copy</button>
+      <button class="btn-share btn-print" onclick="window.print()">&#128424; Print</button>
+    </div>
+    <button class="btn-share btn-reset" onclick="resetForm()">&#8635; <span id="resetText">Start Over</span></button>
+  </div>
+
+  <div class="footer" id="footerText">
+    Oswestry Disability Index v2.1a &mdash; For clinical use only
+  </div>
+</div>
+
+<script>
+// ===== LANGUAGE DATA =====
+const LANG = {
+  en: {
+    title: "Oswestry Disability Index (ODI)",
+    subtitle: "Please answer each section by selecting the ONE statement that best describes your condition today",
+    patientTitle: "\u{1F464} Patient Information",
+    lblName: "Full Name", lblMRN: "MRN / File No.", lblDOB: "Date of Birth", lblDate: "Assessment Date",
+    progress: "Progress", submitText: "Calculate Score", resultTitle: "Assessment Results",
+    resetText: "Start Over", footer: "Oswestry Disability Index v2.1a — For clinical use only",
+    detailsTitle: "Section Breakdown",
+    severity: [
+      { label: "Minimal Disability", desc: "The patient can cope with most living activities. Usually no treatment is indicated apart from advice on lifting, sitting, and exercise." },
+      { label: "Moderate Disability", desc: "The patient experiences more pain and difficulty with sitting, lifting, and standing. Travel and social life are more difficult. May be off work. Personal care, sleeping, and sexual activity are not grossly affected." },
+      { label: "Severe Disability", desc: "Pain remains the main problem in this group but activities of daily living are affected. These patients require a detailed investigation." },
+      { label: "Crippled", desc: "Back pain impinges on all aspects of the patient's life. Positive intervention is required." },
+      { label: "Bed-bound / Exaggerated", desc: "These patients are either bed-bound or exaggerating their symptoms. Careful evaluation is recommended." }
+    ],
+    sections: [
+      {
+        title: "Section 1 — Pain Intensity",
+        options: [
+          "I have no pain at the moment",
+          "The pain is very mild at the moment",
+          "The pain is moderate at the moment",
+          "The pain is fairly severe at the moment",
+          "The pain is very severe at the moment",
+          "The pain is the worst imaginable at the moment"
+        ]
+      },
+      {
+        title: "Section 2 — Personal Care (Washing, Dressing)",
+        options: [
+          "I can look after myself normally without causing extra pain",
+          "I can look after myself normally but it causes extra pain",
+          "It is painful to look after myself and I am slow and careful",
+          "I need some help but can manage most of my personal care",
+          "I need help every day in most aspects of self-care",
+          "I do not get dressed, I wash with difficulty, and stay in bed"
+        ]
+      },
+      {
+        title: "Section 3 — Lifting",
+        options: [
+          "I can lift heavy weights without extra pain",
+          "I can lift heavy weights but it gives extra pain",
+          "Pain prevents me from lifting heavy weights off the floor, but I can manage if they are conveniently placed",
+          "Pain prevents me from lifting heavy weights, but I can manage light to medium weights if they are conveniently positioned",
+          "I can only lift very light weights",
+          "I cannot lift or carry anything"
+        ]
+      },
+      {
+        title: "Section 4 — Walking",
+        options: [
+          "Pain does not prevent me walking any distance",
+          "Pain prevents me from walking more than 1.6 km (1 mile)",
+          "Pain prevents me from walking more than 800 m (0.5 mile)",
+          "Pain prevents me from walking more than 400 m (0.25 mile)",
+          "I can only walk using a stick or crutches",
+          "I am in bed most of the time"
+        ]
+      },
+      {
+        title: "Section 5 — Sitting",
+        options: [
+          "I can sit in any chair as long as I like",
+          "I can only sit in my favourite chair as long as I like",
+          "Pain prevents me from sitting more than 1 hour",
+          "Pain prevents me from sitting more than 30 minutes",
+          "Pain prevents me from sitting more than 10 minutes",
+          "Pain prevents me from sitting at all"
+        ]
+      },
+      {
+        title: "Section 6 — Standing",
+        options: [
+          "I can stand as long as I want without extra pain",
+          "I can stand as long as I want but it gives me extra pain",
+          "Pain prevents me from standing for more than 1 hour",
+          "Pain prevents me from standing for more than 30 minutes",
+          "Pain prevents me from standing for more than 10 minutes",
+          "Pain prevents me from standing at all"
+        ]
+      },
+      {
+        title: "Section 7 — Sleeping",
+        options: [
+          "My sleep is never disturbed by pain",
+          "My sleep is occasionally disturbed by pain",
+          "Because of pain I have less than 6 hours sleep",
+          "Because of pain I have less than 4 hours sleep",
+          "Because of pain I have less than 2 hours sleep",
+          "Pain prevents me from sleeping at all"
+        ]
+      },
+      {
+        title: "Section 8 — Social Life",
+        options: [
+          "My social life is normal and gives me no extra pain",
+          "My social life is normal but increases the degree of pain",
+          "Pain has no significant effect on my social life apart from limiting my more energetic interests",
+          "Pain has restricted my social life and I do not go out as often",
+          "Pain has restricted my social life to my home",
+          "I have no social life because of pain"
+        ]
+      },
+      {
+        title: "Section 9 — Travelling",
+        options: [
+          "I can travel anywhere without pain",
+          "I can travel anywhere but it gives me extra pain",
+          "Pain is bad but I manage journeys over 2 hours",
+          "Pain restricts me to journeys of less than 1 hour",
+          "Pain restricts me to short necessary journeys under 30 minutes",
+          "Pain prevents me from travelling except to receive treatment"
+        ]
+      },
+      {
+        title: "Section 10 — Employment / Homemaking",
+        options: [
+          "My normal homemaking/job activities do not cause pain",
+          "My normal homemaking/job activities increase my pain, but I can still perform all that is required of me",
+          "I can perform most of my homemaking/job duties, but pain prevents me from performing more physically stressful activities",
+          "Pain prevents me from doing anything but light duties",
+          "Pain prevents me from doing even light duties",
+          "Pain prevents me from performing any job or homemaking chore"
+        ]
+      }
+    ]
+  },
+  ar: {
+    title: "مؤشر أوسويستري للإعاقة (ODI)",
+    subtitle: "يرجى الإجابة على كل قسم باختيار العبارة الواحدة التي تصف حالتك اليوم بأفضل شكل",
+    patientTitle: "\u{1F464} معلومات المريض",
+    lblName: "الاسم الكامل", lblMRN: "رقم الملف الطبي", lblDOB: "تاريخ الميلاد", lblDate: "تاريخ التقييم",
+    progress: "التقدم", submitText: "احسب النتيجة", resultTitle: "نتائج التقييم",
+    resetText: "إعادة البدء", footer: "مؤشر أوسويستري للإعاقة — للاستخدام السريري فقط",
+    detailsTitle: "تفاصيل الأقسام",
+    severity: [
+      { label: "إعاقة بسيطة", desc: "يمكن للمريض التعامل مع معظم أنشطة الحياة. عادة لا يلزم علاج بخلاف النصائح المتعلقة بالرفع والجلوس والتمارين." },
+      { label: "إعاقة متوسطة", desc: "يعاني المريض من ألم وصعوبة أكبر في الجلوس والرفع والوقوف. السفر والحياة الاجتماعية أصعب. قد يكون بعيداً عن العمل." },
+      { label: "إعاقة شديدة", desc: "يظل الألم هو المشكلة الرئيسية ولكن أنشطة الحياة اليومية تتأثر. يحتاج هؤلاء المرضى إلى فحص مفصل." },
+      { label: "إعاقة مُقعِدة", desc: "يؤثر ألم الظهر على جميع جوانب حياة المريض. يلزم تدخل إيجابي." },
+      { label: "طريح الفراش / مبالغة", desc: "هؤلاء المرضى إما طريحو الفراش أو يبالغون في أعراضهم. يُوصى بتقييم دقيق." }
+    ],
+    sections: [
+      {
+        title: "القسم ١ — شدة الألم",
+        options: [
+          "لا أعاني من أي ألم في الوقت الحالي",
+          "الألم خفيف جداً في الوقت الحالي",
+          "الألم متوسط في الوقت الحالي",
+          "الألم شديد إلى حد ما في الوقت الحالي",
+          "الألم شديد جداً في الوقت الحالي",
+          "الألم هو أسوأ ما يمكن تخيله في الوقت الحالي"
+        ]
+      },
+      {
+        title: "القسم ٢ — العناية الشخصية (الاستحمام، ارتداء الملابس)",
+        options: [
+          "أستطيع العناية بنفسي بشكل طبيعي دون ألم إضافي",
+          "أستطيع العناية بنفسي بشكل طبيعي لكنه يسبب ألماً إضافياً",
+          "العناية بنفسي مؤلمة وأنا بطيء وحذر",
+          "أحتاج بعض المساعدة لكنني أتدبر معظم عنايتي الشخصية",
+          "أحتاج مساعدة يومية في معظم جوانب العناية الذاتية",
+          "لا أرتدي ملابسي، أغتسل بصعوبة، وأبقى في السرير"
+        ]
+      },
+      {
+        title: "القسم ٣ — رفع الأشياء",
+        options: [
+          "أستطيع رفع أوزان ثقيلة دون ألم إضافي",
+          "أستطيع رفع أوزان ثقيلة لكنه يسبب ألماً إضافياً",
+          "الألم يمنعني من رفع الأوزان الثقيلة من الأرض، لكن يمكنني ذلك إذا كانت في وضع مناسب",
+          "الألم يمنعني من رفع الأوزان الثقيلة، لكن يمكنني التعامل مع الأوزان الخفيفة إلى المتوسطة",
+          "أستطيع رفع الأوزان الخفيفة جداً فقط",
+          "لا أستطيع رفع أو حمل أي شيء"
+        ]
+      },
+      {
+        title: "القسم ٤ — المشي",
+        options: [
+          "الألم لا يمنعني من المشي لأي مسافة",
+          "الألم يمنعني من المشي أكثر من ١.٦ كم",
+          "الألم يمنعني من المشي أكثر من ٨٠٠ متر",
+          "الألم يمنعني من المشي أكثر من ٤٠٠ متر",
+          "لا أستطيع المشي إلا باستخدام عصا أو عكازات",
+          "أنا في السرير معظم الوقت"
+        ]
+      },
+      {
+        title: "القسم ٥ — الجلوس",
+        options: [
+          "أستطيع الجلوس على أي كرسي للمدة التي أريدها",
+          "أستطيع الجلوس على كرسيي المفضل فقط للمدة التي أريدها",
+          "الألم يمنعني من الجلوس أكثر من ساعة",
+          "الألم يمنعني من الجلوس أكثر من ٣٠ دقيقة",
+          "الألم يمنعني من الجلوس أكثر من ١٠ دقائق",
+          "الألم يمنعني من الجلوس تماماً"
+        ]
+      },
+      {
+        title: "القسم ٦ — الوقوف",
+        options: [
+          "أستطيع الوقوف للمدة التي أريدها دون ألم إضافي",
+          "أستطيع الوقوف للمدة التي أريدها لكنه يسبب ألماً إضافياً",
+          "الألم يمنعني من الوقوف أكثر من ساعة",
+          "الألم يمنعني من الوقوف أكثر من ٣٠ دقيقة",
+          "الألم يمنعني من الوقوف أكثر من ١٠ دقائق",
+          "الألم يمنعني من الوقوف تماماً"
+        ]
+      },
+      {
+        title: "القسم ٧ — النوم",
+        options: [
+          "نومي لا يتأثر أبداً بالألم",
+          "نومي يتأثر أحياناً بالألم",
+          "بسبب الألم أنام أقل من ٦ ساعات",
+          "بسبب الألم أنام أقل من ٤ ساعات",
+          "بسبب الألم أنام أقل من ساعتين",
+          "الألم يمنعني من النوم تماماً"
+        ]
+      },
+      {
+        title: "القسم ٨ — الحياة الاجتماعية",
+        options: [
+          "حياتي الاجتماعية طبيعية ولا تسبب لي ألماً إضافياً",
+          "حياتي الاجتماعية طبيعية لكنها تزيد من درجة الألم",
+          "الألم ليس له تأثير كبير على حياتي الاجتماعية باستثناء الأنشطة المُجهِدة",
+          "الألم قيّد حياتي الاجتماعية ولا أخرج كثيراً",
+          "الألم قيّد حياتي الاجتماعية في المنزل فقط",
+          "ليس لدي حياة اجتماعية بسبب الألم"
+        ]
+      },
+      {
+        title: "القسم ٩ — السفر",
+        options: [
+          "أستطيع السفر إلى أي مكان دون ألم",
+          "أستطيع السفر إلى أي مكان لكنه يسبب ألماً إضافياً",
+          "الألم شديد لكنني أتدبر الرحلات التي تزيد عن ساعتين",
+          "الألم يقيدني برحلات أقل من ساعة",
+          "الألم يقيدني برحلات قصيرة ضرورية أقل من ٣٠ دقيقة",
+          "الألم يمنعني من السفر إلا لتلقي العلاج"
+        ]
+      },
+      {
+        title: "القسم ١٠ — العمل / الأعمال المنزلية",
+        options: [
+          "أنشطتي المنزلية/الوظيفية المعتادة لا تسبب ألماً",
+          "أنشطتي المعتادة تزيد من ألمي، لكنني أستطيع أداء كل ما هو مطلوب مني",
+          "أستطيع أداء معظم واجباتي، لكن الألم يمنعني من الأنشطة المُجهِدة بدنياً",
+          "الألم يمنعني من القيام بأي شيء عدا المهام الخفيفة",
+          "الألم يمنعني حتى من المهام الخفيفة",
+          "الألم يمنعني من أداء أي عمل أو مهمة منزلية"
+        ]
+      }
+    ]
+  }
+};
+
+// Short section names for results
+const SECTION_NAMES = {
+  en: ["Pain Intensity", "Personal Care", "Lifting", "Walking", "Sitting", "Standing", "Sleeping", "Social Life", "Travelling", "Employment"],
+  ar: ["شدة الألم", "العناية الشخصية", "رفع الأشياء", "المشي", "الجلوس", "الوقوف", "النوم", "الحياة الاجتماعية", "السفر", "العمل"]
+};
+
+let currentLang = 'en';
+let answers = new Array(10).fill(-1);
+
+// Set today's date
+document.getElementById('assessDate').valueAsDate = new Date();
+
+function buildSections() {
+  const data = LANG[currentLang];
+  const container = document.getElementById('questionnaire');
+  container.innerHTML = '';
+
+  data.sections.forEach((sec, si) => {
+    const div = document.createElement('div');
+    div.className = 'section' + (answers[si] >= 0 ? ' answered' : '');
+    div.id = 'section-' + si;
+
+    let optionsHTML = '';
+    sec.options.forEach((opt, oi) => {
+      const checked = answers[si] === oi ? 'checked' : '';
+      const selected = answers[si] === oi ? ' selected' : '';
+      optionsHTML += `
+        <div class="option${selected}" onclick="selectOption(${si}, ${oi}, this)">
+          <input type="radio" name="q${si}" id="q${si}_${oi}" value="${oi}" ${checked}>
+          <label for="q${si}_${oi}">${opt}</label>
+        </div>`;
+    });
+
+    div.innerHTML = `
+      <div class="section-header">
+        <div class="section-number">${si + 1}</div>
+        <div class="section-title">${sec.title}</div>
+      </div>
+      ${optionsHTML}`;
+
+    container.appendChild(div);
+  });
+}
+
+function selectOption(sectionIdx, optionIdx, el) {
+  answers[sectionIdx] = optionIdx;
+
+  // Update option styling
+  const section = document.getElementById('section-' + sectionIdx);
+  section.classList.add('answered');
+  section.querySelectorAll('.option').forEach(o => o.classList.remove('selected'));
+  el.classList.add('selected');
+  el.querySelector('input').checked = true;
+
+  updateProgress();
+}
+
+function updateProgress() {
+  const answered = answers.filter(a => a >= 0).length;
+  document.getElementById('progressCount').textContent = `${answered} / 10`;
+  document.getElementById('progressFill').style.width = (answered * 10) + '%';
+}
+
+function toggleLanguage() {
+  currentLang = currentLang === 'en' ? 'ar' : 'en';
+  const isAr = currentLang === 'ar';
+
+  document.documentElement.lang = currentLang;
+  document.documentElement.dir = isAr ? 'rtl' : 'ltr';
+
+  const data = LANG[currentLang];
+  document.getElementById('langBtn').textContent = isAr ? 'English' : 'عربي';
+  document.getElementById('title').textContent = data.title;
+  document.getElementById('subtitle').textContent = data.subtitle;
+  document.getElementById('patientTitle').innerHTML = data.patientTitle;
+  document.getElementById('lblName').textContent = data.lblName;
+  document.getElementById('lblMRN').textContent = data.lblMRN;
+  document.getElementById('lblDOB').textContent = data.lblDOB;
+  document.getElementById('lblDate').textContent = data.lblDate;
+  document.getElementById('progressText').textContent = data.progress;
+  document.getElementById('submitText').textContent = data.submitText;
+  document.getElementById('resultTitle').textContent = data.resultTitle;
+  document.getElementById('resetText').textContent = data.resetText;
+  document.getElementById('footerText').textContent = data.footer;
+
+  buildSections();
+  updateProgress();
+
+  // If results showing, refresh them
+  if (document.getElementById('results').classList.contains('show')) {
+    calculateScore();
+  }
+}
+
+function calculateScore() {
+  const answered = answers.filter(a => a >= 0).length;
+  if (answered === 0) {
+    alert(currentLang === 'en' ? 'Please answer at least one section.' : 'يرجى الإجابة على قسم واحد على الأقل.');
+    return;
+  }
+
+  const totalScore = answers.filter(a => a >= 0).reduce((sum, val) => sum + val, 0);
+  const maxPossible = answered * 5;
+  const percentage = Math.round((totalScore / maxPossible) * 100);
+
+  let severityIdx;
+  if (percentage <= 20) severityIdx = 0;
+  else if (percentage <= 40) severityIdx = 1;
+  else if (percentage <= 60) severityIdx = 2;
+  else if (percentage <= 80) severityIdx = 3;
+  else severityIdx = 4;
+
+  const severityClasses = ['minimal', 'moderate', 'severe', 'crippled', 'bedridden'];
+  const data = LANG[currentLang];
+
+  const resultsDiv = document.getElementById('results');
+  resultsDiv.className = 'results show severity-' + severityClasses[severityIdx];
+
+  document.getElementById('scoreValue').textContent = percentage;
+  document.getElementById('scoreLabel').textContent = data.severity[severityIdx].label;
+  document.getElementById('scoreDesc').textContent = data.severity[severityIdx].desc;
+
+  // Build details
+  let detailsHTML = `<h3>${data.detailsTitle}</h3>`;
+  const names = SECTION_NAMES[currentLang];
+  answers.forEach((val, i) => {
+    if (val >= 0) {
+      detailsHTML += `<div class="result-item"><span>${names[i]}</span><span>${val}/5</span></div>`;
+    }
+  });
+  detailsHTML += `<div class="result-item" style="font-weight:700;border-top:2px solid var(--gray-300);padding-top:8px;margin-top:4px;"><span>${currentLang === 'en' ? 'Total' : 'المجموع'}</span><span>${totalScore}/${maxPossible} (${percentage}%)</span></div>`;
+  document.getElementById('resultDetails').innerHTML = detailsHTML;
+
+  resultsDiv.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function getResultText() {
+  const answered = answers.filter(a => a >= 0).length;
+  const totalScore = answers.filter(a => a >= 0).reduce((sum, val) => sum + val, 0);
+  const maxPossible = answered * 5;
+  const percentage = Math.round((totalScore / maxPossible) * 100);
+
+  let severityIdx;
+  if (percentage <= 20) severityIdx = 0;
+  else if (percentage <= 40) severityIdx = 1;
+  else if (percentage <= 60) severityIdx = 2;
+  else if (percentage <= 80) severityIdx = 3;
+  else severityIdx = 4;
+
+  const data = LANG[currentLang];
+  const names = SECTION_NAMES[currentLang];
+  const name = document.getElementById('patientName').value || (currentLang === 'en' ? 'N/A' : 'غير محدد');
+  const mrn = document.getElementById('patientMRN').value || (currentLang === 'en' ? 'N/A' : 'غير محدد');
+  const date = document.getElementById('assessDate').value || new Date().toISOString().slice(0,10);
+
+  let text = currentLang === 'en'
+    ? `--- ODI Assessment Result ---\n`
+    : `--- نتيجة تقييم مؤشر أوسويستري ---\n`;
+
+  text += currentLang === 'en'
+    ? `Patient: ${name}\nMRN: ${mrn}\nDate: ${date}\n\n`
+    : `المريض: ${name}\nرقم الملف: ${mrn}\nالتاريخ: ${date}\n\n`;
+
+  text += currentLang === 'en'
+    ? `ODI Score: ${percentage}%\nClassification: ${data.severity[severityIdx].label}\n\n`
+    : `نتيجة ODI: ${percentage}%\nالتصنيف: ${data.severity[severityIdx].label}\n\n`;
+
+  text += currentLang === 'en' ? `Breakdown:\n` : `التفاصيل:\n`;
+  answers.forEach((val, i) => {
+    if (val >= 0) {
+      text += `  ${names[i]}: ${val}/5\n`;
+    }
+  });
+
+  text += currentLang === 'en'
+    ? `\nTotal: ${totalScore}/${maxPossible}`
+    : `\nالمجموع: ${totalScore}/${maxPossible}`;
+
+  return text;
+}
+
+function shareWhatsApp() {
+  const text = encodeURIComponent(getResultText());
+  window.open('https://wa.me/?text=' + text, '_blank');
+}
+
+function shareEmail() {
+  const subject = encodeURIComponent(currentLang === 'en' ? 'ODI Assessment Result' : 'نتيجة تقييم مؤشر أوسويستري');
+  const body = encodeURIComponent(getResultText());
+  window.location.href = `mailto:?subject=${subject}&body=${body}`;
+}
+
+function copyResult() {
+  navigator.clipboard.writeText(getResultText()).then(() => {
+    const btn = document.querySelector('.btn-copy');
+    const orig = btn.innerHTML;
+    btn.innerHTML = currentLang === 'en' ? '&#10003; Copied!' : '&#10003; تم النسخ!';
+    setTimeout(() => btn.innerHTML = orig, 2000);
+  });
+}
+
+function resetForm() {
+  answers = new Array(10).fill(-1);
+  document.getElementById('patientName').value = '';
+  document.getElementById('patientMRN').value = '';
+  document.getElementById('patientDOB').value = '';
+  document.getElementById('assessDate').valueAsDate = new Date();
+  document.getElementById('results').className = 'results';
+  buildSections();
+  updateProgress();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// Init
+buildSections();
+</script>
+</body>
+</html>
